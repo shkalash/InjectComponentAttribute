@@ -20,7 +20,7 @@ public class TestBehaviour : MonoBehaviour
 	[InjectComponent(SearchOptions.SearchAll | SearchOptions.AllowDisabled, SearchOrder.ParentsFirst)]
 	public Rigidbody myBody;
 	[InjectComponent]
-	public int wrongType;
+	public int wrongType; //Gives a warning in the editor
 }
 public class ReduceBoilerplate : MonoBehviour
 {
