@@ -1,4 +1,4 @@
-# InjectAttribute
+# InjectComponent
 Simple Attribute and PropertyDrawer to replace RequireComponent in Unity.
 This allows you to define a component field that can automatically be set from the game object it is on, it's children, or be manually assigned with a component from a different object in scene.
 
