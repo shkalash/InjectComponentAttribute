@@ -10,6 +10,8 @@ public class InjectComponentDrawer : PropertyDrawer
 	// including adding / removing components
 	// this flag will help us not slow down the editor with tons of GetComponent calls
 	private bool m_didSearch;
+	// easy accessor to the casted version
+	private InjectComponentAttribute m_castedAttribute;
 	// cache the component type
 	private static readonly Type ComponentType = typeof(Component);
 	
@@ -38,7 +40,7 @@ public class InjectComponentDrawer : PropertyDrawer
 		}
 		// Make sure we don't constantly use GetComponent
 		m_didSearch = true;
-		bool shouldSearchChildren = ((InjectComponentAttribute) attribute).searchChildren;
+		m_castedAttribute = ((InjectComponentAttribute) attribute);
 		// Grab the serialized object
 		SerializedObject serObject = property.serializedObject;
 		if (serObject.isEditingMultipleObjects)
@@ -53,25 +55,91 @@ public class InjectComponentDrawer : PropertyDrawer
 				SerializedObject serObjectInner = new SerializedObject(target);
 				SerializedProperty singleProperty = serObjectInner.FindProperty(property.propertyPath);
 				// assing the correct component based on the field and attribute
-				singleProperty.objectReferenceValue = shouldSearchChildren ? 
-					target.GetComponentInChildren(fieldInfo.FieldType) : 
-					target.GetComponent(fieldInfo.FieldType);
+				HandleTarget(singleProperty, target, fieldInfo.FieldType);
 				serObjectInner.ApplyModifiedProperties();
 			}
-			// TODO:
-			// here we would like to update the serialized object with the new changes.
-			// but we don't know if there are other changes pending.
-			// so for now, when multi editing, the inspector will be wrong and show just the 
-			// initial property value
 		}
 		else
 		{
 			// handle just the one target
-			property.objectReferenceValue = shouldSearchChildren ? 
-				((Component) serObject.targetObject).GetComponentInChildren(fieldInfo.FieldType) : 
-				((Component) serObject.targetObject).GetComponent(fieldInfo.FieldType);
+			HandleTarget(property, ((Component) serObject.targetObject), fieldInfo.FieldType);
 		}
 	}
 
+	private void HandleTarget(SerializedProperty property,
+		Component targetObject, Type injectType)
+	{
+		//first search the game object itself.
+		Component component = targetObject.GetComponent(injectType);
+		if (component != null)
+		{
+			property.objectReferenceValue = component;
+			return;
+		}
+		// next if we search all, do it by order
+		if (m_castedAttribute.SearchAll)
+		{
+			switch (m_castedAttribute.SearchOrder)
+			{
+				case SearchOrder.ChildrenFirst:
+				{
+					if (HandleChildren(property, targetObject, injectType))
+					{
+						return;
+					}
+					HandleParents(property, targetObject, injectType);
+					return;
+				}
+				case SearchOrder.ParentsFirst:
+				{
+					if (HandleParents(property, targetObject, injectType))
+					{
+						return;
+					}
+					HandleChildren(property, targetObject, injectType);
+					return;
+				}
+			}
+		}
+		else // otherwise just search the wanted direction
+		{
+			if (m_castedAttribute.SearchChildren)
+			{
+				HandleChildren(property, targetObject, injectType);
+				return;
+			}
+
+			if (!m_castedAttribute.SearchParents)
+			{
+				return;
+			}
+			HandleParents(property, targetObject, injectType);
+		}
+	}
+
+	private bool HandleChildren(SerializedProperty property,
+		Component targetObject, Type injectType)
+	{
+		property.objectReferenceValue = targetObject.GetComponentInChildren(injectType, 
+																			m_castedAttribute.AllowDisabled);
+		return property.objectReferenceValue != null;
+	}
+
+	private bool HandleParents(SerializedProperty property,
+		Component targetObject, Type injectType)
+	{
+		// Get component in parent doesn't allow disabled search
+		if (m_castedAttribute.AllowDisabled)
+		{
+			var components = targetObject.GetComponentsInParent(injectType, true);
+			if (components.Length <= 0)
+				return false;
+			property.objectReferenceValue = components[0];
+			return true;
+		}
+
+		property.objectReferenceValue = targetObject.GetComponentInParent(injectType);
+		return property.objectReferenceValue != null;
+	}
 	
 }
