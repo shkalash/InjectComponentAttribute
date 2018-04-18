@@ -22,4 +22,15 @@ public class TestBehaviour : MonoBehaviour
 	[InjectComponent]
 	public int wrongType;
 }
+public class ReduceBoilerplate : MonoBehviour
+{
+	[SerializeField][InjectComponent]
+	private Transform m_transform;
+	
+	// no need to do this anymore:
+	private void Start()
+	{
+		m_transform = transform;
+	}
+}
 ```
