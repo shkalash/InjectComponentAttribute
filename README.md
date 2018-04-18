@@ -5,17 +5,21 @@ This allows you to define a component field that can automatically be set from t
 # Usage
 Add [InjectComponent] to any serialized component field in a MonoBehaviour to auto assign this field with a component on the same GameObject.
 
-Add [InjectComponent(true)] to also search in children of the game object.
+You can use overloads to denote searching parents and children, disabled components / GameObjects, and search order.
 
-# Example 
+# Examples 
 ```csharp
 public class TestBehaviour : MonoBehaviour
 {
 	[InjectComponent][SerializeField]
 	private AudioSource m_audioSource;
-	[InjectComponent(true)]
+	[InjectComponent(SearchOptions.GameObjectAndChildren)] 
 	public Collider myCollider;
-	[InjectComponent] // Will produce a warning in the console
+	[InjectComponent(SearchOptions.GameObjectAndParents)] 
+	public Collider myOtherCollider;
+	[InjectComponent(SearchOptions.SearchAll | SearchOptions.AllowDisabled, SearchOrder.ParentsFirst)]
+	public Rigidbody myBody;
+	[InjectComponent]
 	public int wrongType;
 }
 ```
