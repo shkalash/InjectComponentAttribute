@@ -58,6 +58,7 @@ public class InjectComponentDrawer : PropertyDrawer
 				HandleTarget(singleProperty, target, fieldInfo.FieldType);
 				serObjectInner.ApplyModifiedProperties();
 			}
+			serObject.SetIsDifferentCacheDirty();
 		}
 		else
 		{
