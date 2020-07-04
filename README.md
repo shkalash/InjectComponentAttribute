@@ -3,8 +3,7 @@ Simple Attribute and PropertyDrawer to replace RequireComponent in Unity.
 This allows you to define a component field that can automatically be set from the game object it is on, it's children, or be manually assigned with a component from a different object in scene.
 
 # Multi Edit Support
-The property drawer will edit multiple selected properties as individual objects and will assign correct components to each selection.
-~~There is a *Known Issue* where the inspector doesn't update the displayed value after such operation until selection changes, but the values are updated on the objects.~~This is now fixed.
+The property drawer will edit multiple selected properties as individual objects and will assign correct components to each selection. 
 
 # Usage
 Add [InjectComponent] to any serialized component field in a MonoBehaviour to auto assign this field with a component on the same GameObject.
